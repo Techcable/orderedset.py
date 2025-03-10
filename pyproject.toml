@@ -1,0 +1,46 @@
+[project]
+name = "techcable.orderedset"
+description = "A simple and efficient OrderedSet implementation"
+authors = [{ name = "Techcable" }]
+license = { text = "LICENSE.txt" }
+keywords = ["orderedset", "ordereddict", "set"]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Cython",
+    "Typing :: Typed",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.9"
+dependencies = []
+dynamic = ["version"]
+
+[dependency-groups]
+mypy = ["mypy~=1.0", {include-group = "typing"}]
+test = ["pytest~=8.3", "pytest-sugar~=1.0"]
+typing = ["typing-extensions~=4.12"]
+dev = [{include-group = "mypy"}, {include-group = "test"}]
+
+[project.urls]
+Source = "https://github.com/Techcable/orderedset.py"
+
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "setuptools_scm[toml]>=6.2",
+    "Cython~=3.0",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+
+[tool.setuptools_scm]
+# NOTE: Using a version file avoids some overhead
+#
+# This file is explicitly ignored by version control.
+write_to = "src/techcable/orderedset/_version.py"
+
