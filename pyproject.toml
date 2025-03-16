@@ -10,7 +10,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Cython",
     "Typing :: Typed",
     "Topic :: Utilities",
 ]
@@ -31,7 +30,6 @@ Source = "https://github.com/Techcable/orderedset.py"
 requires = [
     "setuptools>=61.0",
     "setuptools_scm[toml]>=6.2",
-    "Cython~=3.0",
 ]
 build-backend = "setuptools.build_meta"
 
