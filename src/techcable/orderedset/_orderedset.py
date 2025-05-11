@@ -5,7 +5,9 @@ from collections.abc import Callable, Iterable, Iterator, MutableSet, Sequence, 
 from typing import TYPE_CHECKING, Any, Optional, TypeVar, overload
 
 if TYPE_CHECKING:
-    from typing_extensions import Protocol, override
+    from pydantic import GetCoreSchemaHandler
+    from pydantic_core import core_schema
+    from typing_extensions import Protocol, get_args, override
 
     class Comparable(Protocol):
         def __lt__(self, other: Comparable) -> bool:
@@ -17,11 +19,24 @@ if TYPE_CHECKING:
         def __eq__(self, other: object) -> bool:
             pass
 
+
 else:
     Comparable = object
 
     def override(v):
         return v
+
+    try:
+        from pydantic_core import core_schema
+    except ImportError:
+        pass
+
+    try:
+        # prefer typing_extensions.get_args for python3.9
+        # needed for pydantic
+        from typing_extensions import get_args
+    except ImportError:
+        from typing import get_args
 
 
 T = TypeVar("T")
@@ -202,6 +217,36 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     @override
     def __str__(self) -> str:
         return f"{{{', '.join(map(repr, self))}}}"
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # See here: https://docs.pydantic.dev/latest/concepts/types/#generic-containers
+        instance_schema = core_schema.is_instance_schema(cls)
+
+        args = get_args(source_type)
+        if args:
+            # replace the type and rely on Pydantic to generate the right schema for `Sequence`
+            target_type: type = Sequence[args[0]]  # type: ignore
+            sequence_t_schema = handler.generate_schema(target_type)
+        else:
+            sequence_t_schema = handler.generate_schema(Sequence)
+
+        non_instance_schema = core_schema.no_info_after_validator_function(
+            OrderedSet, sequence_t_schema
+        )
+        return core_schema.union_schema(
+            [
+                instance_schema,
+                non_instance_schema,
+            ],
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                list,  # OrderedSet -> list
+                info_arg=False,
+                return_schema=core_schema.list_schema(),
+            ),
+        )
 
 
 __all__ = ("OrderedSet",)

@@ -15,10 +15,17 @@ requires-python = ">=3.9"
 dependencies = []
 dynamic = ["version"]
 
+[project.optional-dependencies]
+pydantic = [
+    "pydantic~=2.11",
+    # needed for improved get_args
+    'typing_extensions>=4.12; python_version<="3.9"',
+]
+
 [dependency-groups]
 mypy = ["mypy~=1.0", {include-group = "typing"}]
-test = ["pytest~=8.3", "pytest-sugar~=1.0"]
-typing = ["typing-extensions~=4.12"]
+test = ["pytest~=8.3", "pytest-sugar~=1.0", "techcable.orderedset[pydantic]"]
+typing = ["typing-extensions~=4.12", "techcable.orderedset[pydantic]"]
 dev = [{include-group = "mypy"}, {include-group = "test"}]
 
 [project.urls]
