@@ -212,7 +212,8 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     @override
     def __repr__(self) -> str:
-        return f"OrderedSet(({', '.join(map(repr, self))}))"
+        # by convention, this should roundtrip through eval
+        return f"OrderedSet([{', '.join(map(repr, self))}])"
 
     @override
     def __str__(self) -> str:
