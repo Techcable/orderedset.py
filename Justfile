@@ -1,8 +1,15 @@
-test: mypy && check-format
+test: mypy _check && check-format
     # Testing project
     @just _test
 
-check: mypy && check-format
+check: mypy _check && check-format
+
+# runs additional checks
+_check:
+    -ruff check src
+
+fix: && format
+    ruff check --fix src
 
 build: mypy && _test check-format
     # Build project
