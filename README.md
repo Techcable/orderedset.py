@@ -11,8 +11,19 @@ A simple and efficient pure-python ordered set.
 ```python
 from techcable.orderedset import OrderedSet
 
-# prints "1, 2, 7, 3"
+# prints {1, 2, 7, 3}
 print(OrderedSet([1, 2, 7, 2, 3]))
+```
+
+Supports [pydantic](pydantic.org) validation & serialization:
+```python
+import pydantic
+from techcable.orderedset import OrderedSet
+
+model = pydantic.TypeAdapter(OrderedSet[int])
+# prints OrderedSet([1,2,7,8])
+print(repr(model.validate_python([1,2,7,8])))
+assert model.dump_python(OrderedSet([1,2,7,8])) == [1,2,7,8]
 ```
 
 ## Potential Future Features
