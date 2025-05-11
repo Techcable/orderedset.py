@@ -2,13 +2,11 @@
 name = "techcable.orderedset"
 description = "A simple and efficient OrderedSet implementation"
 authors = [{ name = "Techcable" }]
-license = { text = "LICENSE.txt" }
+license = "MIT OR APACHE-2.0"
 keywords = ["orderedset", "ordereddict", "set"]
 readme = "README.md"
 classifiers = [
     "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Typing :: Typed",
     "Topic :: Utilities",
