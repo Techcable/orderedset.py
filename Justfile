@@ -2,6 +2,11 @@ test: mypy _check && check-format
     # Testing project
     @just _test
 
+# Run test just on the current python version
+test-single:
+    # Test on current python version
+    uv run pytest
+
 check: mypy _check && check-format
 
 # runs additional checks
@@ -19,9 +24,7 @@ mypy:
     uv run mypy src
 
 # runs tests without anything else
-_test:
-    # Test on current python version
-    uv run pytest
+_test: test-single
     @just _test_ver 3.13
     @just _test_ver 3.12
     @just _test_ver 3.11
