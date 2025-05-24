@@ -14,7 +14,8 @@ _check:
     -ruff check src
 
 fix: && format
-    ruff check --fix src
+    @# Failure to fix should not prevent formatting
+    -ruff check --fix src
 
 build: mypy && _test check-format
     # Build project
