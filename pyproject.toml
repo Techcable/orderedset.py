@@ -22,6 +22,9 @@ pydantic = [
     'typing_extensions>=4.12; python_version<="3.9"',
 ]
 
+[project.scripts]
+"techcable.orderedset" = "techcable.orderedset.__main__:_main"
+
 [dependency-groups]
 mypy = ["mypy~=1.0", {include-group = "typing"}]
 test = [
