@@ -14,9 +14,24 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import IO, TypeVar
+from typing import IO, TypeVar, no_type_check
 
 from . import OrderedSet
+
+
+def _disable_traceback(disabled_type: type[BaseException], /) -> None:
+    """Disable traceback printing for a specific exception type"""
+    orig_excepthook = sys.excepthook
+
+    @no_type_check
+    def _filter_excepthook(type, value, traceback):
+        if issubclass(type, disabled_type):
+            pass  # do not print
+        else:
+            orig_excepthook(type, value, traceback)
+
+    sys.excepthook = _filter_excepthook
+
 
 S = TypeVar("S", str, bytes)
 
@@ -33,6 +48,7 @@ def _dedup_stream(input_file: IO[S], output_file: IO[S], /) -> None:
 
 
 def _main(raw_args: list[str] | None = None, /) -> None:
+    _disable_traceback(KeyboardInterrupt)
     parser = argparse.ArgumentParser(
         prog="techcable.orderedset", description="Print unique lines, preserving order"
     )
