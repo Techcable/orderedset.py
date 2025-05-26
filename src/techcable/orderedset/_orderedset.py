@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 import operator
-from collections.abc import Callable, Iterable, Iterator, MutableSet, Sequence, Set
+from collections.abc import (
+    AsyncGenerator,
+    AsyncIterable,
+    Callable,
+    Generator,
+    Iterable,
+    Iterator,
+    MutableSet,
+    Sequence,
+    Set,
+)
 from typing import TYPE_CHECKING, Any, Optional, TypeVar, overload
 
 if TYPE_CHECKING:
@@ -248,6 +258,41 @@ class OrderedSet(MutableSet[T], Sequence[T]):
                 return_schema=core_schema.list_schema(),
             ),
         )
+
+    @classmethod
+    def dedup(self, source: Iterable[T], /) -> Generator[T]:
+        """A utility method to deduplicate the specified iterable,
+        while preserving the original order.
+
+        This is a generator, so does not need to wait for the entire input,
+        and will return items as soon as they are available.
+
+        Since: v0.1.4
+        """
+        oset: OrderedSet[T] = OrderedSet()
+        for item in source:
+            if oset.append(item):
+                # new value
+                yield item
+
+    @classmethod
+    async def dedup_async(self, source: AsyncIterable[T], /) -> AsyncGenerator[T]:
+        """A utility method to deduplicate the specified iterable,
+        while preserving the original order.
+
+        This is a generator, so does not need to wait for the entire input.
+        Because it is asynchronous, it does not block the thread while waiting.
+
+        This is an asynchronous version of `OrderedSet.dedup`.
+
+        Since: v0.1.4
+        """
+        # Defined in PEP 525
+        oset: OrderedSet[T] = OrderedSet()
+        async for item in source:
+            if oset.append(item):
+                # new value
+                yield item
 
 
 __all__ = ("OrderedSet",)
