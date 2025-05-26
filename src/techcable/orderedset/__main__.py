@@ -13,10 +13,17 @@ The functionality in this module is not intended for use as an API"""
 from __future__ import annotations
 
 import argparse
+import os
 import sys
-from typing import IO, TypeVar, no_type_check
+from collections.abc import Iterator
+from typing import IO, Iterable, Never, TypeVar, no_type_check
 
 from . import OrderedSet
+
+
+def _fatal(msg: str) -> Never:
+    print("ERROR:", msg, file=sys.stderr)
+    sys.exit(1)
 
 
 def _disable_traceback(disabled_type: type[BaseException], /) -> None:
@@ -36,15 +43,46 @@ def _disable_traceback(disabled_type: type[BaseException], /) -> None:
 S = TypeVar("S", str, bytes)
 
 
-def _dedup_stream(input_file: IO[S], output_file: IO[S], /) -> None:
-    assert input_file.readable()
-    assert output_file.writable()
-    oset: OrderedSet[S] = OrderedSet()
-    while line := input_file.readline():
-        # OrderedSet.append returns True if the item is newly added,
-        # and False if it already exists
-        if oset.append(line):
+def _read_lines(input_file: IO[S], /) -> Iterator[S]:
+    if not input_file.readable():
+        raise TypeError("input not readable")
+    while True:
+        try:
+            line = input_file.read()
+        except IOError as e:
+            _fatal(f"Failed to read input, {e}")
+        if line:
+            yield line
+        else:
+            break
+
+
+def _write_lines(output_file: IO[S], lines: Iterable[S], /) -> None:
+    if not output_file.writable():
+        raise TypeError("output not writable")
+    for line in lines:
+        try:
             output_file.write(line)
+            output_file.flush()
+        except IOError as e:
+            _fatal(f"Failed to write output, {e}")
+
+
+def _dedup_stream(input_file: IO[S], output_file: IO[S], /) -> None:
+    # uses OrderedSet.dedup to deduplicate
+    _write_lines(output_file, OrderedSet.dedup(_read_lines(input_file)))
+
+
+def _open_raw_input(input_file: str | None) -> IO[bytes]:
+    if input_file is None or input_file == "-":
+        return os.fdopen(sys.stdin.fileno(), "rb", buffering=0)
+    else:
+        try:
+            return open(input_file, "rb", buffering=0)
+        except FileNotFoundError:
+            _fatal(f"File not found: {input_file}")
+        except IOError as e:
+            _fatal(f"Failed to open file, {e}")
 
 
 def _main(raw_args: list[str] | None = None, /) -> None:
@@ -54,14 +92,14 @@ def _main(raw_args: list[str] | None = None, /) -> None:
     )
     parser.add_argument(
         "input_file",
-        type=argparse.FileType(mode="br"),
         help="The input file to read from",
         nargs="?",
         default="-",
     )
 
     args = parser.parse_args(raw_args)
-    _dedup_stream(args.input_file, sys.stdout.buffer)
+    with _open_raw_input(args.input_file) as input_file:
+        _dedup_stream(input_file, os.fdopen(sys.stdout.fileno(), "wb", buffering=0))
 
 
 if __name__ == "__main__":
