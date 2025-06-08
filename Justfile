@@ -21,9 +21,16 @@ fix: && _format fix-spelling
     @# Failure to fix should not prevent formatting
     -ruff check --fix src
 
-build: mypy && _test check-format
+build: mypy && doc _test check-format
     # Build project
     uv build
+
+# build project documentation with `pdoc`
+#
+# See website: https://pdoc.dev/
+doc:
+    @mkdir -p docs
+    PYTHONPATH=src ./pdoc/.venv/bin/pdoc --docformat=markdown -o docs techcable.orderedset
 
 mypy:
     uv run mypy src
