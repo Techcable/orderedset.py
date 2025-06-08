@@ -259,6 +259,35 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             ),
         )
 
+    def __getstate__(self) -> Any:
+        """Efficiently pickles the elements of an OrderedSet."""
+        assert len(self._elements) == len(self._unique)
+        # format for v0.1.5
+        return self._elements.copy()
+
+    def __setstate__(self, state: Any) -> None:
+        """Restores the elements of an OrderedSet from the pickled representation."""
+        # init variables
+        self._unique = set()
+        self._elements = list()
+        # deserialize `state` - a poor man's `match`
+        elements: list[T]
+        if isinstance(state, list):
+            # format for v0.1.5 - list of elements
+            elements = state
+        elif isinstance(state, tuple) and len(state) == 2:
+            state_dict, state_slots = state
+            if state_dict is not None:
+                raise TypeError
+            # format for v0.1.4 - (None, dict(_elements=..., _unique=...))
+            elements = state_slots["_elements"]
+            if set(elements) != state_slots["_unique"]:
+                raise ValueError("Fields `_elements` and `_unique` must match")
+        else:
+            raise TypeError(f"Cannot unpickle from {type(state)}")
+        # set elements
+        self.update(elements)
+
     @classmethod
     def dedup(self, source: Iterable[T], /) -> Generator[T]:
         """A utility method to deduplicate the specified iterable,
