@@ -5,7 +5,11 @@ techcable.orderedset
 [![pypi](https://img.shields.io/pypi/v/techcable.orderedset)](https://pypi.org/project/techcable.orderedset/)
 ![types](https://img.shields.io/pypi/types/techcable.orderedset)]
 
-A simple and efficient pure-python ordered set.
+A simple and efficient `OrderedSet` in pure python. Implements both [`MutableSet`] and [`Sequence`].
+
+[`MutableSet`]: https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSet 
+[`Sequence`]: https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence 
+
 
 ## Example Usage
 ```python
@@ -13,6 +17,18 @@ from techcable.orderedset import OrderedSet
 
 # prints {1, 2, 7, 3}
 print(OrderedSet([1, 2, 7, 2, 3]))
+# Implements all standard set methods, still preserves order
+print(OrderedSet([1,2]) | OrderedSet([3,2,4]))  # {1,2,3,4}
+
+
+# Implements `append` method, returning True on success
+# and False if the item was a duplicate
+oset = OrderedSet()
+oset.append(1) # True
+oset.append(2) # True
+oset.append(1) # False - already in set, did nothing
+oset.extend([2,3]) # True - at least one success
+oset.append([2,3]) # False - all duplicates
 ```
 
 Supports [pydantic](pydantic.org) validation & serialization:
@@ -27,9 +43,9 @@ assert model.dump_python(OrderedSet([1,2,7,8])) == [1,2,7,8]
 ```
 
 ## Potential Future Features
-- Add [acceleration module] using C/Rust/Cython
-- Implemented `OrderedFrozenSet`
-- Publish HTML documentation using Sphinx or [pdoc](https://pdoc.dev/)
+- Implement `OrderedFrozenSet`
+- Consider [acceleration module] using C/Rust/Cython
+   - Probably unnecessary since this has library has very little overhead compared to the builtin `set`/`list`
 
 [acceleration module]: https://peps.python.org/pep-0399/
 
