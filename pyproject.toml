@@ -43,6 +43,15 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[tool.ruff.lint]
+extend-select = [
+    # pydocstyle
+    "D",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
 [tool.isort]
 profile = "black"
 
