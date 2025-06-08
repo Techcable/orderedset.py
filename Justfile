@@ -1,4 +1,4 @@
-test: mypy _check && check-format
+test: mypy _lint && check-format
     # Testing project
     @just _test
 
@@ -7,10 +7,14 @@ test-single:
     # Test on current python version
     uv run pytest
 
-check: mypy _check && check-format spellcheck
+check: mypy lint
 
-# runs additional checks
-_check:
+# runs lints, but not type checking or tests
+#
+# Avoids performance penalty of `mypy`
+lint: _lint && check-format
+
+_lint:
     -ruff check src
 
 fix: && _format fix-spelling
