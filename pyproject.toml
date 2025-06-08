@@ -103,7 +103,7 @@ extend-select = [
     "T20", # flake8-print - prevent use of `print` statement
     "TC", # flake8-type-checking - guard imports needed only for type-checking
     "TID252", # forbid relative imports
-    # "D", # pydocstyle - require docstrings to be well-written
+    "D", # pydocstyle - lint docstrings and require for all public methods
     "PLW", # pylint[warning]
     "PLC", # pylint[convention]
     "F", # pyflakes

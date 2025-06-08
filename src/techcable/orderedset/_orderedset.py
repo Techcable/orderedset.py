@@ -54,10 +54,28 @@ U = TypeVar("U", bound=Comparable)
 
 
 class OrderedSet(MutableSet[T], Sequence[T]):
-    """A Set of elements, which preserves insertion order.
+    """
+    A [`MutableSet`] that preserves insertion order and is also a [`Sequence`].
 
-    This type cannot implement `MutableSequence` because OrderedSet.append
-    ignores duplicate elements and returns a `bool` instead of `None`."""
+    ## Conveniences
+    Calling [`OrderedSet.append`] returns `True` if the element was successfully added,
+    and `False` if the element is a duplicate.
+
+    Calling [`OrderedSet.__str__`]` is equivalent to `f"{x!r, y!r}"`.
+    This is much prettier than [`OrderedSet.__repr__`],
+    which is expected to roundtrip through `eval`.
+
+    ## Gotchas
+    This type does not implement [`MutableSequence`]
+    because [`OrderedSet.append`] ignores duplicate elements
+    and returns `bool` instead of `None`.
+
+    ### Thread Safety
+    This type is *NOT* safe to mutate from multiple threads.
+
+    Concurrent reads are fully supported,
+    as long as no modifications are being made.
+    """
 
     __slots__ = ("_elements", "_unique")
 
@@ -66,7 +84,11 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     @override
     def __init__(self, source: Iterable[T] | None = None, /) -> None:
-        """Create an ordered set containing the specified elements"""
+        """
+        Create an `OrderedSet` containing the specified elements.
+
+        This preserves the order of the original input and implicitly ignores duplicates.
+        """
         self._unique = set()
         self._elements = []
         if source is None:
@@ -100,10 +122,15 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         return cls(args)
 
     def append(self, value: T, /) -> bool:
-        """Append a value to the set if it doesn't already exist.
+        """
+        Append a value to the set, returning `True` if successfully added.
 
-        Returns `True` if successfully added, or `False` if already exists.
-        Note that the return value doesn't match list.append, which always returns `None`"""
+        Returns `False` if the element already exists.
+
+        There are two important differences between this method and [`list.append`]:
+        1. This method does nothing if the value is a duplicate
+        2. This method returns a `bool` instead of `None`
+        """
         is_new = value not in self._unique
         if is_new:
             self._unique.add(value)
@@ -115,10 +142,10 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """
         Add all the specified values to the set.
 
-        Returns True if at least one element was added,
+        Returns `True` if at least one element was added,
         or `False` if every element is a duplicate.
 
-        Roughly equivalent to `any(oset.append(v) for v in values)`.
+        Equivalent to `any(oset.append(v) for v in values)`.
         """
         changed = False
         for val in values:
@@ -127,26 +154,47 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     @override
     def add(self, value: T, /) -> None:
-        """Add a value to the set if it doesn't already exist.
+        """
+        Add a value to the set if it doesn't already exist.
 
-        Return value is `None` for consistency with `set.add`.
-        Use `OrderedSet.append` if you want to know if the element already existed."""
+        Return value is `None` for consistency with [`set.add`].
+        Use [`OrderedSet.append`] if you want to know if the element already existed.
+        """
         self.append(value)
 
     @override
     def discard(self, value: T, /) -> None:
-        """Remove the element from the set if it exists."""
+        """
+        Remove an element from the set if it exists.
+
+        Unlike [`OrderedSet.remove`], this method does not raise
+        an exception if this element is missing.
+        """
         if value in self._unique:
             self._elements.remove(value)
             self._unique.remove(value)
 
     def update(self, values: Iterable[T], /) -> None:
-        """Add all the"""
+        """
+        Add all the specified values to this set.
+
+        Equivalent to running
+        ```
+        for val in values:
+            oset.add(val)
+        ```
+        """
         self.extend(values)
 
     @override
     def pop(self, index: int = -1) -> T:
-        """Pop an item from the end of the list (or at `index`)"""
+        """
+        Remove and return an item from the end of the list (or from `self[index]`).
+
+        Raises `IndexError` if the list is empty or `index` is out of bounds.
+
+        Equivalent to [`list.pop`].
+        """
         item = self._elements.pop(index)
         self._unique.remove(item)
         return item
@@ -199,7 +247,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             return NotImplemented
 
     __hash__ = None  # type: ignore
-    """Since an OrderedSet is mutable, it cannot be hashed"""
+    """Since an OrderedSet is mutable, it does is not hashable."""
 
     def _impl_cmp_op(self, other: object, op: Callable[[Any, Any], bool]) -> bool:
         if isinstance(other, OrderedSet):
@@ -227,25 +275,56 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         return self._impl_cmp_op(other, operator.ge)
 
     def sort(self, *, key: Callable[[T], U] | None = None, reverse: bool = False) -> None:
-        """Sort the elements in the set, as if calling list.sort"""
+        """Sort the elements of the set in-place, as if calling [`list.sort`]."""
         self._elements.sort(key=key, reverse=reverse)
 
     def reverse(self) -> None:
-        """Reverse the elements in the set, as if calling list.reverse"""
+        """Reverse the elements of the set in-place, as if calling [`list.reverse`]."""
         self._elements.reverse()
 
     def copy(self) -> OrderedSet[T]:
-        """Create a copy of the set"""
+        """
+        Create a shallow copy of the set.
+
+        Equivalent to `OrderedSet(self)`.
+        """
         return OrderedSet(self)
 
     @override
     def __repr__(self) -> str:
+        """
+        Represent this set in a form that will round-trip through [`eval`].
+
+        Examples:
+        - `repr(OrderedSet([1, 2, 3]))` returns `"OrderedSet([1, 2, 3])"`
+        - `repr(OrderedSet([1, 2, 3]))` returns `"OrderedSet([1, 2"])`
+
+        The representation used by [`OrderedSet.__str__`] is much prettier.
+        It still calls `repr` on each element and not `str`,
+        so `str(OrderedSet([' '])` gives `"{' '}"` instead of `"{ }"`.
+        It is really just a prettier `repr` which isn't contained
+        by the need to round-trip through [`eval`].
+
+        The format changed in v0.1.6 to take advantage of [`OrderedSet.of`].
+        It now uses `"OrderedSet.of(1,2,3)"` instead of OrderedSet([1,2,3])`.
+        This may break users relying on the format,
+        but I consider this acceptable during the beta.
+        """
         # by convention, this should roundtrip through eval
-        # in v0.1.6, this changed to use OrderedSet.of(1,2,3) instead of OrderedSet([1,2,3])
         return f"OrderedSet.of({', '.join(map(repr, self))})"
 
     @override
     def __str__(self) -> str:
+        """
+        Represent the elements in this set by calling `repr` on each element, surrounding it with braces.
+
+        Examples:
+        - `str(OrderedSet([1, 2, 3]))` returns `"{1, 2, 3}"`
+        - `str(OrderedSet(["a", "b", "c"]))` returns `"{'a', 'b', 'c'}"`
+
+        This would make a very good implementation of [`OrderedSet.__repr__`],
+        except for the fact it will not round-trip through [`eval`].
+        """
         return f"{{{', '.join(map(repr, self))}}}"
 
     @classmethod
@@ -305,13 +384,19 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     @classmethod
     def dedup(cls, source: Iterable[T], /) -> Generator[T]:
-        """A utility method to deduplicate the specified iterable,
-        while preserving the original order.
+        """
+        Yield unique elements, preserving order.
 
-        This is a generator, so does not need to wait for the entire input,
+        This is an iterator combinator (generator) similar to those in [`itertools`].
+        It does not need to wait for the entire input,
         and will return items as soon as they are available.
 
+        This is similar to [`more_itertools.unique_everseen`],
+        although it uses an `OrderedSet` internally and does not support the `key` argument.
+
         Since: v0.1.4
+
+        [`more_itertools.unique_everseen`]: https://more-itertools.readthedocs.io/en/v10.7.0/api.html#more_itertools.unique_everseen
         """
         oset: OrderedSet[T] = OrderedSet()
         for item in source:
@@ -321,17 +406,25 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     @classmethod
     async def dedup_async(cls, source: AsyncIterable[T], /) -> AsyncGenerator[T]:
-        """A utility method to deduplicate the specified iterable,
-        while preserving the original order.
+        """
+        Yield unique elements, preserving order.
 
-        This is a generator, so does not need to wait for the entire input.
+        This is an iterator combinator (generator) similar to those in [`itertools`].
+        It does not need to wait for the entire input,
+        and will return items as soon as they are available.
         Because it is asynchronous, it does not block the thread while waiting.
 
-        This is an asynchronous version of `OrderedSet.dedup`.
+        This is an asynchronous version of [`OrderedSet.dedup`].
+
+        It is similar to [`more_itertools.unique_everseen`],
+        but is asynchronous, uses an `OrderedSet` internally,
+        and does not support the `key` argument.
 
         Since: v0.1.4
+
+        [`more_itertools.unique_everseen`]: https://more-itertools.readthedocs.io/en/v10.7.0/api.html#more_itertools.unique_everseen
         """
-        # Defined in PEP 525
+        # async for defined in PEP 525
         oset: OrderedSet[T] = OrderedSet()
         async for item in source:
             if oset.append(item):
