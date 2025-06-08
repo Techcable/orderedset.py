@@ -16,3 +16,6 @@ pre-commit:
       tags: formatter
       glob: "*.{py,pyi}"
       run: ruff check --select 'I' --output-format 'concise' -- {staged_files}
+    typos:
+      tags: spellcheck
+      run: typos --force-exclude -- {staged_files}

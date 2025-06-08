@@ -7,13 +7,13 @@ test-single:
     # Test on current python version
     uv run pytest
 
-check: mypy _check && check-format
+check: mypy _check && check-format spellcheck
 
 # runs additional checks
 _check:
     -ruff check src
 
-fix: && format
+fix: && _format fix-spelling
     @# Failure to fix should not prevent formatting
     -ruff check --fix src
 
@@ -40,8 +40,18 @@ _test_ver pyver:
     @# Using --isolated avoids clobbering dev environment
     @uv run --isolated --python {{pyver}} --only-group test pytest --quiet
 
+# Check for spelling issues
+spellcheck:
+    # Check for obvious spelling issues
+    typos
+
+# Fix obvious spelling issues
+fix-spelling:
+    # Fix obvious spelling issues
+    typos --write-changes
+
 # Checks for formatting issues
-check-format:
+check-format: && spellcheck
     @# Invoking ruff directly instead of through uv tool run saves ~12ms per command,
     @# reducing format --check src time from ~20ms to ~8ms.
     @# it reduces time for `ruff --version` from ~16ms to ~3ms.
@@ -50,6 +60,8 @@ check-format:
     ruff format --check .
     ruff check --select I --output-format concise .
 
-format:
+format: _format && spellcheck
+
+_format:
     ruff format .
     ruff check --select 'I' --fix .

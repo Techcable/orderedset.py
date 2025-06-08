@@ -1,0 +1,4 @@
+[default.extend-words]
+# Pydantic uses 'ser' as a shorthand for 'serialize'
+# See issue crate-ci/typos#1318
+ser = "ser"
