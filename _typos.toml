@@ -1,3 +1,9 @@
+[files]
+ignore-hidden = false  # we want dotfiles
+extend-exclude = [
+    ".git", # needed because we 'ignore-hidden'
+]
+
 [default.extend-words]
 # Pydantic uses 'ser' as a shorthand for 'serialize'
 # See issue crate-ci/typos#1318
