@@ -20,6 +20,9 @@ __pycache__
 # uv - libraries should not include lockfile
 /uv.lock
 
+# tox
+/.tox
+
 ##
 ## Miscellaneous
 ##
