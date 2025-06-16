@@ -206,9 +206,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     def __ge__(self, other: object) -> bool:
         return self._impl_cmp_op(other, operator.ge)
 
-    def sort(
-        self, key: Optional[Callable[[T], U]] = None, reverse: bool = False
-    ) -> None:
+    def sort(self, key: Optional[Callable[[T], U]] = None, reverse: bool = False) -> None:
         """Sort the elements in the set, as if calling list.sort"""
         self._elements.sort(key=key, reverse=reverse)
 
@@ -230,9 +228,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         return f"{{{', '.join(map(repr, self))}}}"
 
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
+    def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         # See here: https://docs.pydantic.dev/latest/concepts/types/#generic-containers
         instance_schema = core_schema.is_instance_schema(cls)
 
@@ -244,9 +240,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         else:
             sequence_t_schema = handler.generate_schema(Sequence)
 
-        non_instance_schema = core_schema.no_info_after_validator_function(
-            OrderedSet, sequence_t_schema
-        )
+        non_instance_schema = core_schema.no_info_after_validator_function(OrderedSet, sequence_t_schema)
         return core_schema.union_schema(
             [
                 instance_schema,

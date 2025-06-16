@@ -52,3 +52,5 @@ profile = "black"
 # This file is explicitly ignored by version control.
 write_to = "src/techcable/orderedset/_version.py"
 
+[tool.ruff]
+line-length = 120
