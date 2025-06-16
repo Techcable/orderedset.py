@@ -54,3 +54,89 @@ write_to = "src/techcable/orderedset/_version.py"
 
 [tool.ruff]
 line-length = 120
+exclude = [
+    # this is in .gitignore - but for some reason its still triggering `UP` lints
+    "src/techcable/orderedset/_version.py",
+]
+
+[tool.ruff.lint]
+preview = true
+extend-select = [
+    "RUF", # ruff
+    "B", # flake8-bugbear
+    # probable bugs
+    "DTZ", # flake8-datetimez - timezone issues
+    "EXE", # issues with shebang
+    "RET", # return statements
+    "SLOT", # require __slots__ for subclasses of immutable types
+    "T10", # use of breakpoint()
+    "FBT", # boolean flags should not be positional args
+    # possible bugs
+    "BLE", # prevent over-broad `catch` statements
+    "PIE", # flake8-pie - misc lints
+    "PYI", # lint pyi files
+    "PLE", # pylint[error]
+    "PLR", # pylint[refactor]
+    "LOG", # flake8-logging
+    "PT", # flake8-pytest-style
+    "ASYNC", # flake8-async
+    # lints for legacy code
+    "UP", # pyupgrade
+    "YTT", # flake8-2020
+    "C4", # flake8-comprehensions
+    "FA", # flake-future-annotations
+    "PLR", # pylint[refactor]
+    "FURB", # refurb
+    # style
+    "Q002", # avoid single-quote docstrings
+    "Q003", # change outer quotes to avoid escaping inner quotes
+    "Q004", # unecessary quote escape
+    "TD", # checks todo statements are well-formed
+    "PTH", # prefer use of pathlib.Path
+    "FLY", # prefer fstring to str.json
+    "W", # pycodestyle
+    "G", # flake8-logging-format
+    "N", # pep8-naming 
+    # pedantic
+    "SIM", # flake8-simplify
+    "A", # falke8-builtins - prevent shadowing builtins
+    "T20", # flake8-print - prevent use of `print` statement
+    "TC", # flake8-type-checking - guard imports needed only for type-checking
+    "TID252", # forbid relative imports
+    # "D", # pydocstyle - require docstrings to be well-written
+    "PLW", # pylint[warning]
+    "PLC", # pylint[convention]
+    "F", # pyflakes
+    "TRY", # tryceratops
+    "ERA", # eradicate - forbid commented out code
+    # "FIX", # prevent use of todo comments
+    # buggy lints
+    # "SLF", # flake8-self - doesn't consider isinstance
+    # "CPY", # flake8-copyright - require copyright header - doesn't support SPDX tags
+]
+ignore = [
+    # moderately pedantic
+    # "E741", # ambiguous variable names
+    "PLW3201", # allow dunder methods with 'no special meaning'
+    # extremely pedantic
+    "PLR2004", # allow use of 'magic values' - `if x == 3` is fine
+    "PYI025", # collections.abc.Set is not confusing with `set`
+    "UP015", # allow passing redundant modes to `open()` - explicit is better than implicit
+    "TRY003", # allow long error messages 'outside of exception class'
+    "SIM105", # allow try/except/pass instead of contextlib.suppress
+    "RET505", # use of return statement in `if` does not make `else` unecessary
+    "PLR0904", # too many public methods
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    # excessively pedantic
+    "D", # pydocstyle
+    "E741", # ambigous variable names
+    "TC", # flake8-type-checking - import guards are useless here
+    # moderately pedantic
+    "CPY", # test files don't need copyright
+]

@@ -12,14 +12,14 @@ from collections.abc import (
     Sequence,
     Set,
 )
-from typing import TYPE_CHECKING, Any, Optional, TypeVar, overload
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 if TYPE_CHECKING:
     from pydantic import GetCoreSchemaHandler
     from pydantic_core import core_schema
     from typing_extensions import Protocol, get_args, override
 
-    class Comparable(Protocol):
+    class Comparable(Protocol):  # noqa: PLW1641 - do not require __hash__ method
         def __lt__(self, other: Comparable) -> bool:
             pass
 
@@ -59,7 +59,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     This type cannot implement `MutableSequence` because OrderedSet.append
     ignores duplicate elements and returns a `bool` instead of `None`."""
 
-    __slots__ = ("_unique", "_elements")
+    __slots__ = ("_elements", "_unique")
 
     _unique: set[T]
     _elements: list[T]
@@ -181,6 +181,9 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         else:
             return NotImplemented
 
+    __hash__ = None  # type: ignore
+    """Since an OrderedSet is mutable, it cannot be hashed"""
+
     def _impl_cmp_op(self, other: object, op: Callable[[Any, Any], bool]) -> bool:
         if isinstance(other, OrderedSet):
             return op(self._unique, other._unique)
@@ -263,7 +266,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """Restores the elements of an OrderedSet from the pickled representation."""
         # init variables
         self._unique = set()
-        self._elements = list()
+        self._elements = []
         # deserialize `state` - a poor man's `match`
         elements: list[T]
         if isinstance(state, list):
@@ -283,7 +286,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         self.update(elements)
 
     @classmethod
-    def dedup(self, source: Iterable[T], /) -> Generator[T]:
+    def dedup(cls, source: Iterable[T], /) -> Generator[T]:
         """A utility method to deduplicate the specified iterable,
         while preserving the original order.
 
@@ -299,7 +302,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
                 yield item
 
     @classmethod
-    async def dedup_async(self, source: AsyncIterable[T], /) -> AsyncGenerator[T]:
+    async def dedup_async(cls, source: AsyncIterable[T], /) -> AsyncGenerator[T]:
         """A utility method to deduplicate the specified iterable,
         while preserving the original order.
 

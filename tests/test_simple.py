@@ -61,7 +61,7 @@ async def test_async_dedup():
     for example in EXAMPLE_DATA:
         async_counter = 0
 
-        async def increment_counter() -> None:
+        async def increment_counter() -> None:  # noqa: RUF029 - absence of `await` is intentional
             nonlocal async_counter
             async_counter += 1
 
