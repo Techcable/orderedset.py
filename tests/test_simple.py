@@ -56,6 +56,16 @@ def test_dedup():
         assert list(OrderedSet.dedup(example)) == _remove_duplicates(example)
 
 
+def test_format():
+    # OrderedSet.__repr__ needs to round trip through eval
+    assert repr(OrderedSet([1, 2, 3])) == "OrderedSet([1, 2, 3])"
+    assert repr(OrderedSet(["foo"])) == "OrderedSet(['foo'])"
+    # OrderedSet.__str__ has no such requirement
+    assert str(OrderedSet([1, 2, 3])) == "{1, 2, 3}"
+    # however, it still should call repr on each element, not str
+    assert str(OrderedSet([" "])) == "{' '}"
+
+
 @pytest.mark.asyncio
 async def test_async_dedup():
     for example in EXAMPLE_DATA:
