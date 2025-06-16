@@ -206,7 +206,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     def __ge__(self, other: object) -> bool:
         return self._impl_cmp_op(other, operator.ge)
 
-    def sort(self, key: Optional[Callable[[T], U]] = None, reverse: bool = False) -> None:
+    def sort(self, *, key: Callable[[T], U] | None = None, reverse: bool = False) -> None:
         """Sort the elements in the set, as if calling list.sort"""
         self._elements.sort(key=key, reverse=reverse)
 
