@@ -82,6 +82,23 @@ class OrderedSet(MutableSet[T], Sequence[T]):
                 self.append(value)
         assert len(self._unique) == len(self._elements)
 
+    @classmethod
+    def of(cls, /, *args: T) -> OrderedSet[T]:
+        """
+        Construct an [`OrderedSet`] using specified elements.
+
+        This is a factory method equivalent to `OrderedSet([*args])`,
+        but avoiding an extra pair of brackets.
+
+        It is inspired by Java's [`List.of`] method.
+
+        Unlike the java method, the returned set is not immutable.
+        It is no different from those produced using the standard constructor.
+
+        [`List.of`]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html#of(E...)
+        """
+        return cls(args)
+
     def append(self, value: T, /) -> bool:
         """Append a value to the set if it doesn't already exist.
 
