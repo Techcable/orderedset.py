@@ -58,8 +58,9 @@ def test_dedup():
 
 def test_format():
     # OrderedSet.__repr__ needs to round trip through eval
-    assert repr(OrderedSet([1, 2, 3])) == "OrderedSet([1, 2, 3])"
-    assert repr(OrderedSet(["foo"])) == "OrderedSet(['foo'])"
+    # since v0.1.6 we use of OrderedSet.of
+    assert repr(OrderedSet([1, 2, 3])) == "OrderedSet.of(1, 2, 3)"
+    assert repr(OrderedSet(["foo"])) == "OrderedSet.of('foo')"
     # OrderedSet.__str__ has no such requirement
     assert str(OrderedSet([1, 2, 3])) == "{1, 2, 3}"
     # however, it still should call repr on each element, not str
