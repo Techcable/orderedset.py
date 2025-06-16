@@ -16,6 +16,14 @@ pre-commit:
       tags: formatter
       glob: "*.{py,pyi}"
       run: ruff check --select 'I' --output-format 'concise' -- {staged_files}
+    taplo:
+      tags: formatter
+      glob: "*.toml"
+      # No need to --force-exclude for taplo
+      run: taplo format --check -- {staged_files}
+      env:
+        # without this, taplo is very verbose
+        RUST_LOG: warn
     typos:
       tags: spellcheck
       run: typos --force-exclude -- {staged_files}
