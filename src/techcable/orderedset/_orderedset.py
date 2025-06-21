@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import operator
+from collections import defaultdict
 from collections.abc import (
     AsyncGenerator,
     AsyncIterable,
@@ -17,7 +18,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, overload
 if TYPE_CHECKING:
     from pydantic import GetCoreSchemaHandler
     from pydantic_core import core_schema
-    from typing_extensions import Protocol, get_args, override
+    from typing_extensions import Protocol, Self, get_args, override
 
     class Comparable(Protocol):  # noqa: PLW1641 - do not require __hash__ method
         def __lt__(self, other: Comparable) -> bool:
@@ -176,6 +177,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         However, it takes linear time like [`list.remove`],
         instead of the constant time that [`set.remove`] takes.
         Invoking it repeatedly may cause quadratic blowup, just like `list.remove` would.
+        Using [`OrderedSet.__isub__`] for bulk removes is much faster and avoids this.
 
         See [`OrderedSet.discard`] for a variant that does nothing if the item is not present.
         """
@@ -199,6 +201,57 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         if value in self._unique:
             self._elements.remove(value)
             self._unique.remove(value)
+
+    def _assign(self, other: OrderedSet[T], /) -> Self:
+        self._unique = other._unique
+        self._elements = other._elements
+        return self
+
+    def __sub__(self, other: Set[T]) -> OrderedSet[T]:
+        if isinstance(other, Set):
+            return OrderedSet(item for item in self if item not in other)
+        else:
+            raise NotImplementedError
+
+    def __and__(self, other: Set[T]) -> OrderedSet[T]:
+        if isinstance(other, Set):
+            return OrderedSet(item for item in self if item in other)
+        else:
+            raise NotImplementedError
+
+    if not TYPE_CHECKING:
+        # too difficult to do with old-style typevars
+
+        def __xor__(self, other: Set[T]) -> OrderedSet[T]:
+            if isinstance(other, Set):
+                counts: dict[T, int] = defaultdict(lambda: 0)
+                for item in self:
+                    counts[item] += 1
+                for item in other:
+                    counts[item] += 1
+                return OrderedSet(item for item, cnt in counts.items() if cnt == 1)
+            else:
+                raise NotImplementedError
+
+        def __ixor__(self, other: Set[T]) -> Self:
+            return self._assign(self ^ other)
+
+    def __iand__(self, other: Set[T]) -> Self:
+        # explicitly override to avoid quadratic blowup on remove
+        return self._assign(self & other)
+
+    def __isub__(self, other: Set[T]) -> Self:
+        """
+        Remove the specified elements from this set.
+
+        Avoids quadratic blowup that would occur by calling [`OrderedSet.remove`] in a loop.
+        """
+        # explicitly override to avoid quadratic blowup on remove
+        if other is self:
+            self.clear()
+            return self
+        else:
+            return self._assign(self - other)
 
     def update(self, values: Iterable[T], /) -> None:
         """
