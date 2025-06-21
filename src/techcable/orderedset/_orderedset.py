@@ -70,6 +70,11 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     because [`OrderedSet.append`] ignores duplicate elements
     and returns `bool` instead of `None`.
 
+    The [`OrderedSet.remove`] method takes linear time to remove an element,
+    not constant time like `set.remove` does.
+    Calling it in a loop will trigger quadratic blow up just like use of [`list.remove`] would.
+    To avoid this, bulk-remove elements using the set subtraction operator (`-=`).
+
     ### Thread Safety
     This type is *NOT* safe to mutate from multiple threads.
 
@@ -167,6 +172,11 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """
         Remove an element from the set, throwing a KeyError if not present.
 
+        This method preserves the original order of the set.
+        However, it takes linear time like [`list.remove`],
+        instead of the constant time that [`set.remove`] takes.
+        Invoking it repeatedly may cause quadratic blowup, just like `list.remove` would.
+
         See [`OrderedSet.discard`] for a variant that does nothing if the item is not present.
         """
         # set.remove will raise a KeyError for us
@@ -177,6 +187,11 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     def discard(self, value: T, /) -> None:
         """
         Remove an element from the set if it exists.
+
+        This method preserves the original order of the set.
+        However, it takes linear time (`O(n)`) instead of the constant time.
+        Invoking it repeatedly may cause quadratic blowup.
+        See [`OrderedSet.remove`] for more details on this.
 
         Unlike [`OrderedSet.remove`], this method does not raise
         an exception if this element is missing.
