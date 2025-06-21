@@ -27,3 +27,12 @@ pre-commit:
     typos:
       tags: spellcheck
       run: typos --force-exclude -- {staged_files}
+# takes one parameter - the file with the proposed commit message
+# access through lefthook with `{1}`
+#
+# If this hook fails, a backup of the commit message is saved in .git/
+commit-msg:
+  commands:
+    typos-commit:
+      tags: spellcheck
+      run: typos -- {1}
