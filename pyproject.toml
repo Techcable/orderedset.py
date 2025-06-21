@@ -24,6 +24,7 @@ pydantic = [
 
 [dependency-groups]
 mypy = ["mypy~=1.0", { include-group = "typing" }]
+# keep in sync with [tool.hatch.envs] until hatch supports PEP 754
 test = [
     "pytest~=8.3",
     "pytest-asyncio>=0.26",
@@ -38,19 +39,38 @@ Source = "https://github.com/Techcable/orderedset.py"
 
 [build-system]
 requires = [
-    "setuptools>=61.0",
-    "setuptools_scm[toml]>=6.2",
+    "hatchling",
+    "hatch-vcs",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
-[tool.isort]
-profile = "black"
 
-[tool.setuptools_scm]
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.envs.hatch-test]
+# use uv instead of venv/pip
+installer = "uv"
+# Keep in sync with dependency-groups until hatch supports PEP 754
+# See pypa/hatch#1852
+dependencies = [
+    "pytest~=8.3",
+    "pytest-asyncio>=0.26",
+    "pytest-sugar~=1.0",
+]
+extra-dependencies = ["pydantic"]
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+[tool.hatch.build.hooks.vcs]
 # NOTE: Using a version file avoids some overhead
 #
 # This file is explicitly ignored by version control.
-write_to = "src/techcable/orderedset/_version.py"
+version-file = "src/techcable/orderedset/_version.py"
+
+[tool.isort]
+profile = "black"
 
 [tool.ruff]
 line-length = 120
