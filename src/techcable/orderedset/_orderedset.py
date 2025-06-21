@@ -163,6 +163,17 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         self.append(value)
 
     @override
+    def remove(self, value: T, /) -> None:
+        """
+        Remove an element from the set, throwing a KeyError if not present.
+
+        See [`OrderedSet.discard`] for a variant that does nothing if the item is not present.
+        """
+        # set.remove will raise a KeyError for us
+        self._unique.remove(value)
+        self._elements.remove(value)
+
+    @override
     def discard(self, value: T, /) -> None:
         """
         Remove an element from the set if it exists.
