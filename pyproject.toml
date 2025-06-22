@@ -44,6 +44,10 @@ requires = [
 ]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+# needed to actually include the sources in the wheel
+only-include = ["src"]
+sources = ["src"]
 
 [tool.hatch.version]
 source = "vcs"
